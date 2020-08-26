@@ -554,6 +554,124 @@ For this example, the `greet` function’s notation would be: `greet/1` which in
             "What is your most beloved possession?" Comb
             // "Hello brave Sir Peter, I see you have set your sights on Harrenhal. Did you bring your comb?"
         ```
-* **Working with Lists**:
-    * 
+### Working with Lists**:
+    * Similarly to the `String` module there is also a `List` module which exposes functions that can operate on lists
+        ```
+            List.first([1,2,3,4])
+            // 1
+            List.last([1,2,3,4])
+            // 4
+        ```
+    * However when we try something like `List.reverse` we find that Elixir doesn't have this function
+        ```
+            List.reverse([1,2,3,4])
+            (UndefinedFunctionError) function `List.reverse/1` is undefined or private
+        ```
+    * It's important to note here that just because `List.reverse/1` is not a function does not mean there is no `List.reverse` function, it's just telling us that the function we called _with that arity_ does not exist.
+    * What we come to find is that in this case, the `reverse` function simply lives in a different module, the `Enum` module. Sometimes you'll have Map functions or List functions that don't exist in their respective modules. Always check the `Enum` module as well, as both of these data structures are enumerable (able to be iterated over)
+        ```
+            farm_animals = ["cow", "rooster", "pig", "dog"]
+            Enum.reverse(farm_animals)
+            // ["dog", "pig", "rooster", "cow"]
+        ```
+* **Enumerating Enumerables**:
+    * The simplest way to enumerate through a list in Elixir is to use the `Enum.each/2` function:
+        ```
+            cities = ["Chicago", "New York", "San Francisco", "Los Angeles", "Houston"]
+            Enum.each(cities, &IO.puts/1)
+            // Chicago
+            // New York
+            // San Francisco
+            // Los Angeles
+            // Houston
+            // :ok
+        ```
+    * The first argument passed to the `each` function is the enum we want to operate on (in this case, a list). The second argument is the function you'd like to apply to each item in the enum
+    * You may remember the `&` operator from the Functions chapter, where it stood in for normal function syntax to refer to the position of the arguments, as opposed to their names
+        ```
+            print = &(IO.puts("Hello #{&1}"))
+            print.("Peter")
+            // "Hello Peter"
+        ```
+    * Here however, the `&` operator has a different function -- to capture functions from modules so that we can use them later on
+    * In the example above we're capturing `IO.puts/1` so that `Enum.each/2` can call that function on all of the items in the list
+    * Let's take a look at how `Enum.each/2` is processing the `&IO.puts/1`:
+        ```
+            puts = &IO.puts/1 // assign the function reference to "puts"
+            puts.("Peter") // calling the assigned function variable
+            // "Peter"
+            // :ok
+        ```
+    * The code above illustrates how the operation within the `Enum.each/2` function works internally
+    * The code above is the exact same as our original `greeting` function from Chapter 5
+        ```
+        greeting = fn(place) -> "Hello, welcome to #{place}"
+        ```
+    * You're assigning the variable `greeting` to a function just like you assign `puts` to `IO.puts/1`, the only difference is we are not defining the function body, but rather relying on the module
+* **The Map Function**:
+    * The above works all well and good until you need to apply a second function to each item:
+        ```
+            list = ["chicago", "new york", "los angeles"]
+            Enum.each(list, &String.capitalize/1)
+            // :ok
+        ```
+    * The output doesn't print to the console because we don't have an `IO.puts` call. So how do we operate on these items while also printing them to the screen?
+        ```
+            Enum.map(cities, &String.capitalize/1)
+            // ["Chicago", "New York", "Los Angeles"]
+        ```
+    * The `map` function takes an enum and a function to apply to each item. The output is a new list
+* **Reduce**:
+    * Reduce is a common enum operation that combines all values of a list and returns the aggregate
+        ```
+            test_scores = [88, 75, 100, 95, 57, 82, 90, 68]
+            Enum.reduce(scores, fn(acc, next) -> acc + next end)
+            // 655
+        ```
+        ```
+            words = ["Old", "MacDonald", "had", "a", "farm"]
+            Enum.reduce(words, fn(next, acc) -> acc + next end)
+            // "Old MacDonald had a farm"
+        ```
+* **Summing up a List**:
+    ```
+        scores = [66, 95, 100, 78, 83, 72, 89, 92, 95, 99]
+        Enum.sum(scores)
+        // 869
+    ```
+* Exercises:
+    * Use a combination of `Enum.map/2` and `String.replace/3` to replace all the e's in these word with another letter of your choosing:
+        ```
+            list =["a", "very", "fine", "collection", "of", "words", "enunciated"]
+            Enum.map(words, fn(x) -> 
+                new_word = String.replace(x, "o", "WOW!")
+                IO.puts(new_word)
+            end)
+            // a
+            // very
+            // fine
+            // cWOW!llectiWOW!n
+            // WOW!f
+            // wWOW!rds
+            // enunciated
+        ```
+    * Use `Enum.reduce/2` to multiply these numbers together:
+         ```
+              nums = [5,12,9,24,9,18]
+              total = Enum.reduce(nums, fn(next, acc) -> acc * next end)
+              IO.puts(total)
+              // 2099520
+        ```
+
+### Working with Maps: 
+* Similarly to Lists, Maps are also enumerable and can be operated on from the `Enum` or `Map` modules
+    ```
+        person = %{name: "Peter", age: 28, dog: "Rooney"}
+        Enum.each(person, fn({key, value}) -> IO.puts(value) end)
+        // 28
+        // "Peter"
+        // "Rooney"
+        // :ok
+    ```
+    * Here we are using a `tuple` to destructure the arguments. A tuple is **not** enumerable, and we know they exist in an ordered list, so we can be sure that `key` and `value` are in the correct positions (i.e. it shouldn't ever be `fn({value, key})`)
     
